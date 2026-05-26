@@ -1,0 +1,12 @@
+(when-let [requires (resolve 'clojure.main/repl-requires)] (clojure.core/apply clojure.core/require @requires))
+clj꞉trab-av3.core꞉> 
+(when-let [requires (resolve 'clojure.main/repl-requires)] (clojure.core/apply clojure.core/require @requires))
+clj꞉trab-av3.core꞉> 
+(defn -main
+  "I don't do a whole lot ... yet."
+  [& args]
+  (println "Hello, World!"))
+clj꞉trab-av3.core꞉> 
+(ns trab-av3.core
+  (:gen-class))
+clj꞉trab-av3.core꞉> 
