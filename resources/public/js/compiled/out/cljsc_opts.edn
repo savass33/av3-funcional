@@ -1,1 +1,0 @@
-{:output-dir "resources/public/js/compiled/out", :externs ["closure-js/externs"], :optimizations :none, :output-to "resources/public/js/compiled/trab_av3.js", :asset-path "js/compiled/out", :output-wrapper false, :libs ["closure-js/libs"], :main trab-av3.core, :pretty-print true}

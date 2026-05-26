@@ -1,13 +1,28 @@
+# Build artifacts
 /target
 /classes
 /checkouts
-profiles.clj
+/resources/public/js/compiled
 pom.xml
 pom.xml.asc
 *.jar
 *.class
-/.lein-*
-/.nrepl-port
-/.prepl-port
+
+# IDE and Editor files
+.lsp/
+.clj-kondo/
+.calva/
+.nrepl-port
+.prepl-port
+.lein-repl-history
+.lein-failures
+.lein-port
+profiles.clj
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Mercurial (not used)
 .hgignore
 .hg/
