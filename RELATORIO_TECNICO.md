@@ -1,6 +1,6 @@
 # Relatório Técnico: Projeto Calculadora de Calorias Functional
 
-Este relatório descreve a implementação da Calculadora de Calorias, desenvolvida para a avaliação AV3 da disciplina de Programação Funcional. O projeto demonstra a aplicação de conceitos avançados como imutabilidade, funções de ordem superior e a arquitetura hexagonal.
+Este relatório descreve a implementação da Calculadora de Calorias, desenvolvida para a avaliação AV3 da disciplina de Programação Funcional. O projeto demonstra a aplicação de conceitos avançados como imutabilidade, funções de ordem superior e a arquitetura hexagonal em uma estrutura simplificada e intuitiva.
 
 ---
 
@@ -29,40 +29,33 @@ Diferente da programação tradicional (imperativa), onde damos ordens ao comput
 
 ---
 
-## 3. Arquitetura do Sistema (Hexagonal)
+## 3. Arquitetura do Sistema e Organização de Arquivos
 
-O projeto é dividido em camadas para que a "tecnologia" (banco de dados, web) não se misture com a "inteligência" (regras de cálculo).
+O projeto utiliza a **Arquitetura Hexagonal**, organizada em pastas intuitivas para facilitar a leitura e manutenção:
 
-### A. Núcleo de Domínio (O "Cérebro" Puro)
-Localizado em: `src/cljc/trab_av3/dominio/regras_caloricas.cljc`
-*   **O que faz:** Contém as fórmulas matemáticas. É escrito em `.cljc` para que funcione tanto no servidor (Java) quanto no navegador (JavaScript).
-*   **Principais Funções:**
-    *   `calcular-calorias-alimento`: Aplica os multiplicadores (4, 4, 9).
-    *   `consolidar-saldo-diario`: Usa o `reduce` para somar todos os eventos e subtrair a meta.
+### A. Núcleo de Domínio (Inteligência Pura)
+Localizado em: `src/cljc/dominio/`
+*   **`regras.cljc`**: Contém as fórmulas matemáticas puras. Funciona tanto no servidor quanto no navegador.
+*   **`portas.cljc`**: Define o protocolo (contrato) do Repositório, ditando como os dados devem ser salvos sem se preocupar com a tecnologia de banco de dados.
 
-### B. Portas (Os Contratos)
-Localizado em: `src/cljc/trab_av3/portas/repositorio.cljc`
-*   **O que faz:** Define **como** o sistema deve salvar dados, mas não **onde**. É um "contrato" que diz: "Quem quiser ser o banco de dados deste sistema deve saber salvar-usuario e obter-extrato".
+### B. Back-end (Infraestrutura do Servidor)
+Localizado em: `src/clj/backend/`
+*   **`api.clj`**: O adaptador de entrada web. Gerencia as rotas HTTP e traduz requisições JSON para o sistema.
+*   **`memoria.clj`**: O adaptador de saída. Implementa o repositório utilizando um **Atom** do Clojure para persistência em memória.
+*   **`main.clj`**: O ponto de partida que liga o servidor Jetty na porta 3000.
 
-### C. Adaptadores de Saída (Persistência)
-Localizado em: `src/clj/trab_av3/adaptadores/saida/repositorio/memoria.clj`
-*   **O que faz:** Implementa o contrato das Portas. Aqui usamos um **Atom** (uma caixa segura do Clojure para guardar estados que mudam) para manter os dados na memória do servidor enquanto ele estiver ligado.
+### C. Front-end (Interface do Usuário)
+Localizado em: `src/cljs/frontend/`
+*   **`ui.cljs`**: Componentes visuais construídos com **Reagent**. Gerencia a reatividade da tela.
+*   **`cliente.cljs`**: Adaptador de saída que realiza as chamadas para a API do Back-end.
+*   **`main.cljs`**: Inicializa a aplicação no navegador.
 
-### D. Adaptador de Entrada (A API Web)
-Localizado em: `src/clj/trab_av3/adaptadores/entrada/api/rotas.clj`
-*   **O que faz:** Transforma requisições da internet (JSON) em dados que o Clojure entende. Ele recebe o "clique" do usuário e chama o Domínio para calcular e o Repositório para salvar.
-
-### E. Front-end (A Interface do Usuário)
-Localizado em: `src/cljs/trab_av3/ui/componentes/app.cljs`
-*   **O que faz:** Desenvolvido com **Reagent**. Cria os formulários e a tabela que o usuário vê. 
-*   **Lógica:** Toda vez que o usuário clica em "Salvar", ele envia os dados para a API e o Reagent atualiza a tela automaticamente (reatividade).
-
-### F. Testes Baseados em Propriedades
-Localizado em: `test/trab_av3/dominio/propriedades/testes_dominio.clj`
-*   **O que faz:** Em vez de testar um exemplo (ex: 2+2=4), ele gera **100 cenários aleatórios** para provar que o saldo calórico nunca falha, não importa a ordem dos eventos.
+### D. Garantia de Qualidade (Testes)
+Localizado em: `test/dominio/`
+*   **`testes_propriedades.clj`**: Usa a biblioteca `test.check` para gerar cenários aleatórios e provar que as regras de cálculo são infalíveis.
 
 ---
 
 ## 4. Conclusão
 
-Este projeto não é apenas uma calculadora, mas um exemplo de **Software Robusto**. Ao separar a inteligência (Domínio) da infraestrutura (Web/Memória), garantimos que o sistema seja fácil de testar, impossível de gerar "bugs de estado" (devido à imutabilidade) e academicamente alinhado com as melhores práticas de Engenharia de Software Funcional.
+A nova estrutura do projeto reflete um design limpo e modular. Ao separar o **Domínio**, o **Backend** e o **Frontend** em pastas distintas e com nomes claros, o projeto demonstra não apenas o domínio técnico da linguagem Clojure, mas também uma compreensão profunda de organização de código e boas práticas de arquitetura de software.
