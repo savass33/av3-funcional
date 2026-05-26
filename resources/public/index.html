@@ -8,13 +8,12 @@
     <div id="app">Cargando aplicação...</div>
     <script src="js/compiled/trab_av3.js" type="text/javascript"></script>
     <script type="text/javascript">
-      // Aguarda o carregamento dos scripts do ClojureScript em modo :none
       window.onload = function() {
-        if (typeof trab_av3 !== 'undefined' && trab_av3.core && trab_av3.core.init) {
-          trab_av3.core.init();
+        if (typeof frontend !== 'undefined' && frontend.main && frontend.main.init) {
+          frontend.main.init();
         } else {
-          console.error("Erro: trab_av3.core.init não encontrado. Verifique se a compilação foi bem sucedida.");
-          document.getElementById("app").innerHTML = "Erro ao carregar aplicação. Verifique o console do navegador.";
+          console.error("Erro: frontend.main.init não encontrado.");
+          document.getElementById("app").innerHTML = "Erro ao carregar aplicação.";
         }
       };
     </script>

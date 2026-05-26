@@ -1,10 +1,5 @@
-(ns trab-av3.adaptadores.saida.repositorio.memoria
-  (:require [trab-av3.portas.repositorio :refer [Repositorio]]))
-
-;; --- Defesa Acadêmica: Gerenciamento de Estado com Átomos (Capítulo 10) ---
-;; Conforme o edital, a base de dados é mantida em memória utilizando 'atoms'.
-;; Este adaptador de saída implementa o protocolo 'Repositorio', isolando o efeito
-;; colateral de mutação de estado do núcleo puro do domínio.
+(ns backend.memoria
+  (:require [dominio.portas :refer [Repositorio]]))
 
 (defrecord RepositorioMemoria [db]
   Repositorio

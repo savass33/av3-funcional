@@ -1,14 +1,9 @@
-(ns trab-av3.dominio.propriedades.testes-dominio
+(ns dominio.testes-propriedades
   (:require [clojure.test :refer [deftest is]]
             [clojure.test.check :as tc]
             [clojure.test.check.generators :as gen]
             [clojure.test.check.properties :as prop]
-            [trab-av3.dominio.regras-caloricas :as dominio]))
-
-;; --- Defesa Acadêmica: Testes baseados em Propriedades (Capítulo 13) ---
-;; Este namespace aplica a técnica de Test-Check para provar invariantes matemáticos.
-;; A propriedade testada garante que o saldo final é independente da ordem dos eventos,
-;; uma característica fundamental de sistemas funcionais puros e comutativos.
+            [dominio.regras :as dominio]))
 
 (def gen-refeicao
   (gen/hash-map :carboidratos (gen/large-integer* {:min 0 :max 500})

@@ -1,10 +1,5 @@
-(ns trab-av3.adaptadores.saida.api-cliente.servico
+(ns frontend.cliente
   (:require [ajax.core :refer [GET POST]]))
-
-;; --- Defesa Acadêmica: Adaptadores de Saída no Frontend (ClojureScript) ---
-;; Este adaptador abstrai as chamadas HTTP para o Back-end. No frontend, 
-;; as chamadas de rede são efeitos colaterais que devem ser isolados da 
-;; lógica de visualização (Reagent).
 
 (def api-url "http://localhost:3000/api")
 

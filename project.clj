@@ -17,7 +17,7 @@
                  [cljs-ajax "0.8.4"]]
   :source-paths ["src/clj" "src/cljs" "src/cljc"]
   :test-paths ["test"]
-  :main ^:skip-aot trab-av3.core
+  :main ^:skip-aot backend.main
   :target-path "target/%s"
   :profiles {:dev {:dependencies [[javax.servlet/servlet-api "2.5"]
                                   [ring/ring-mock "0.4.0"]]}
@@ -29,6 +29,6 @@
                         :compiler {:output-to "resources/public/js/compiled/trab_av3.js"
                                    :output-dir "resources/public/js/compiled/out"
                                    :asset-path "js/compiled/out"
-                                   :main trab-av3.core
+                                   :main frontend.main
                                    :optimizations :none
                                    :pretty-print true}}]})

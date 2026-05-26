@@ -1,12 +1,6 @@
-(ns trab-av3.ui.componentes.app
+(ns frontend.ui
   (:require [reagent.core :as r]
-            [trab-av3.adaptadores.saida.api-cliente.servico :as api]))
-
-;; --- Defesa Acadêmica: Gerenciamento de Estado no Front-end (Capítulo 12) ---
-;; Utilizamos átomos de Reagent para gerenciar o estado da interface. 
-;; O estado é reativo: qualquer mudança no átomo dispara o re-render dos componentes.
-;; A lógica de negócio reside no Back-end, enquanto o Front-end atua como
-;; um adaptador de entrada para as interações do usuário.
+            [frontend.cliente :as api]))
 
 (defonce estado-app (r/atom {:extrato [] :saldo 0 :usuario {}}))
 
