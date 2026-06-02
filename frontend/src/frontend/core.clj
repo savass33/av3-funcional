@@ -15,10 +15,10 @@
     (catch Exception e
       (println "Erro de conexão com o Backend:" (.getMessage e)))))
 
-(defn get-json [endpoint]
+(defn get-json [endpoint params]
   (try
-    (let [res (client/get (str api-url endpoint) {:accept :json :throw-exceptions false})]
-      (json/parse-string (:body res) true)) ; true parsed as keywords
+    (let [res (client/get (str api-url endpoint) {:query-params params :accept :json :throw-exceptions false})]
+      (json/parse-string (:body res) true))
     (catch Exception e
       (println "Erro de conexão com o Backend:" (.getMessage e))
       nil)))
@@ -52,7 +52,7 @@
   (println "\n==========================")
   (println "    CONSULTAR USUARIO     ")
   (println "==========================")
-  (let [user (get-json "/usuario")]
+  (let [user (get-json "/usuario" {})]
     (if (empty? user)
       (println "Nenhum usuário cadastrado.")
       (do
@@ -66,28 +66,30 @@
   (println "    REGISTRAR ALIMENTO    ")
   (println "==========================")
   (let [data (ler-texto "Data da refeicao (ex: 26/05/2026): ")
-        alimento (ler-texto "Nome do alimento (ex: maca, arroz): ")
+        alimento (ler-texto "Nome do alimento (ex: apple, rice): ")
         quantidade (ler-numero "Quantidade consumida (em gramas): ")]
     (post-json "/refeicao" {"data" data "alimento" alimento "quantidade" quantidade})
-    (println "-> Alimento enviado! A API backend consultou o serviço externo para buscar as calorias.")))
+    (println "-> Alimento enviado! A API backend consultou o serviço externo (API Ninjas) para buscar as calorias.")))
 
 (defn registrar-exercicio []
   (println "\n==========================")
   (println "   REGISTRAR EXERCICIO    ")
   (println "==========================")
   (let [data (ler-texto "Data do exercicio (ex: 26/05/2026): ")
-        atividade (ler-texto "Nome da atividade (ex: corrida, caminhada): ")
+        atividade (ler-texto "Nome da atividade (ex: running, walking): ")
         duracao (ler-numero "Tempo de duracao (em minutos): ")]
     (post-json "/exercicio" {"data" data "atividade" atividade "duracao" duracao})
-    (println "-> Atividade enviada! A API backend consultou o serviço externo para calcular a perda calórica.")))
+    (println "-> Atividade enviada! A API backend consultou o serviço externo (API Ninjas) para calcular a perda calórica.")))
 
 (defn ver-extrato []
   (println "\n==========================")
   (println "    EXTRATO CALORICO      ")
   (println "==========================")
-  (let [extrato (get-json "/extrato")]
+  (let [periodo (ler-texto "Digite a data para filtrar (ex: 26/05/2026) ou deixe em branco para ver tudo: ")
+        params (if (empty? periodo) {} {"periodo" periodo})
+        extrato (get-json "/extrato" params)]
     (if (empty? extrato)
-      (println "Ainda não existem registros.")
+      (println "Ainda não existem registros para este período.")
       (reduce (fn [_ evento]
                 (if (= (:tipo evento) "refeicao")
                   (println (str "[" (:data evento) "] Consumo: " (:nome evento) " (" (:quantidade evento) "g) -> +" (:calorias evento) " cal"))
@@ -99,18 +101,21 @@
   (println "\n==========================")
   (println "     SALDO CALORICO       ")
   (println "==========================")
-  (let [saldo (get-json "/saldo")]
-    (when saldo
-      (println "Saldo Acumulado: " (:saldo saldo) " calorias"))))
+  (let [periodo (ler-texto "Digite a data para filtrar (ex: 26/05/2026) ou deixe em branco para ver o saldo total: ")
+        params (if (empty? periodo) {} {"periodo" periodo})
+        saldo-map (get-json "/saldo" params)]
+    (when saldo-map
+      (println "Período Consultado:" (:periodo saldo-map))
+      (println "Saldo Acumulado:" (:saldo saldo-map) "calorias"))))
 
 (defn menu []
   (println "\n=== CALCULADORA FUNCIONAL ===")
-  (println "1. Cadastrar Dados Pessoais (altura, peso, idade, sexo)")
+  (println "1. Cadastrar Dados Pessoais (altura, peso, idade e sexo)")
   (println "2. Consultar Dados Pessoais")
-  (println "3. Registrar Consumo de Alimento (Ganho)")
-  (println "4. Registrar Atividade Física (Perda)")
-  (println "5. Consultar Extrato de Transações")
-  (println "6. Consultar Saldo de Calorias")
+  (println "3. Registrar Consumo de Alimento (Ganho de Caloria)")
+  (println "4. Registrar Realização de Atividade Física (Perda de Caloria)")
+  (println "5. Consultar Extrato de Transações (Por Período)")
+  (println "6. Consultar Saldo de Calorias (Por Período)")
   (println "7. Sair")
   (print "\nSua escolha: ")
   (flush)

@@ -18,9 +18,17 @@ Para atender de forma irrestrita às restrições do PDF, os laços iterativos i
 *   **Higher-Order Functions:** O `reduce` e `map` foram empregados no Backend para calcular as calorias totais e realizar o balanço sem iterar as listas manualmente. O `reduce` também foi usado no Frontend para imprimir a lista de extratos no terminal (evitando o `doseq`).
 *   **Tail Recursion (`recur`):** No Frontend, o "loop" contínuo do menu do terminal é mantido exclusivamente pela recursão de cauda através da chamada `(recur)` dentro de um `cond`, sem estourar o limite de pilha (Stack Overflow).
 
+## 3. Integração com APIs Externas (Terceiros) e Filtros por Período
+
+Conforme exigência do PDF (página 2), o cálculo das calorias não é efetuado internamente. O Backend funciona como uma ponte (Adapter) que consulta **APIs Externas** para obter a contagem exata. 
+
+*   **API Ninjas (Nutrition & Calories Burned):** O arquivo `backend/src/backend/handler.clj` utiliza a biblioteca `clj-http.client` para realizar requisições `GET` reais aos endpoints da API Ninjas. É necessário que o aluno/professor insira sua chave (`api-ninjas-key`) no código fonte do backend para que as requisições autenticadas ocorram.
+*   **Fallback Acadêmico:** Caso a chave não seja configurada, o sistema foi programado para fornecer um retorno simulado (mock), garantindo que a aplicação não crashe durante a apresentação e cumpra o fluxo.
+*   **Filtros por Período:** Atendendo aos itens 4 e 5 do edital, as rotas `/api/extrato` e `/api/saldo` agora processam Query Parameters (`?periodo=`). O uso da Higher-Order Function `filter` sobre as datas das transações garante a exibição correta dos eventos diários sem o uso de estruturas condicionais ou laços impuros.
+
 ---
 
-## 3. Decisões Arquiteturais e Estrutura de Diretórios
+## 4. Decisões Arquiteturais e Estrutura de Diretórios
 
 A arquitetura foi inteiramente substituída para isolar completamente o servidor (Backend REST API) da camada de interação visual (Frontend CLI). Ambos os projetos utilizam a linguagem **Clojure nativa (JVM)**.
 
