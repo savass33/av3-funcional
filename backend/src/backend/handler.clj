@@ -18,31 +18,35 @@
 ;; externa funcione de verdade. Caso deixe o valor padrão, o sistema
 ;; fará um fallback seguro (simulação) para não quebrar a apresentação.
 ;; =====================================================================
-(def api-ninjas-key "COLOQUE_SUA_CHAVE_AQUI")
+(def api-ninjas-key "MSUBf9CKo1tmPsj6xZEq4bPjUyMF8hwnOsTmTzeA")
+(def usda-api-key "B6owfRo3jZ1oHt3lkQi3Gb3rnKXiCLzYk7fHyZId")
 
 ;; --- Defesa Acadêmica: APIs Externas (Terceiros) ---
 ;; Conforme PDF, as calorias devem ser obtidas por meio de APIs externas
-;; (ex: API Ninjas) pelo Back-end.
+;; (ex: API Ninjas, USDA API) pelo Back-end.
 
 (defn buscar-calorias-alimento-api-externa [alimento quantidade]
-  (if (= api-ninjas-key "COLOQUE_SUA_CHAVE_AQUI")
-    (do
-      (println "[BACKEND] AVISO: Chave da API Ninjas não configurada. Usando fallback simulado para" alimento)
-      (int (* 100 (/ (if (string? quantidade) (Float/parseFloat quantidade) quantidade) 100.0))))
-    (try
-      (let [query (str quantidade "g " alimento)
-            resposta (client/get "https://api.api-ninjas.com/v1/nutrition"
-                                 {:query-params {"query" query}
-                                  :headers {"X-Api-Key" api-ninjas-key}
-                                  :as :json})
-            dados (:body resposta)]
-        ;; A API Ninjas retorna uma lista de itens encontrados. Somamos todos via reduce.
-        (if (empty? dados)
-          0
-          (reduce + (map :calories dados))))
-      (catch Exception e
-        (println "[BACKEND] Erro ao consultar API Ninjas (Alimento):" (.getMessage e))
-        0))))
+  (try
+    (let [resposta (client/get "https://api.nal.usda.gov/fdc/v1/foods/search"
+                               {:query-params {"query" alimento
+                                               "api_key" usda-api-key}
+                                :as :json})
+          dados (:body resposta)
+          foods (:foods dados)]
+      (if (empty? foods)
+        0
+        (let [primeiro-alimento (first foods)
+              nutrientes (:foodNutrients primeiro-alimento)
+              ;; Filtra o nutriente "Energy" (KCAL) usando filter (função de ordem superior)
+              energia (first (filter #(and (= (:nutrientName %) "Energy")
+                                           (= (:unitName %) "KCAL"))
+                                     nutrientes))
+              kcal-por-100g (if energia (:value energia) 0)
+              q-float (if (string? quantidade) (Float/parseFloat quantidade) quantidade)]
+          (int (* kcal-por-100g (/ q-float 100.0))))))
+    (catch Exception e
+      (println "[BACKEND] Erro ao consultar USDA API (Alimento):" (.getMessage e))
+      0)))
 
 (defn buscar-calorias-exercicio-api-externa [atividade duracao]
   (if (= api-ninjas-key "COLOQUE_SUA_CHAVE_AQUI")

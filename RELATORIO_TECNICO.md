@@ -20,11 +20,14 @@ Para atender de forma irrestrita às restrições do PDF, os laços iterativos i
 
 ## 3. Integração com APIs Externas (Terceiros) e Filtros por Período
 
-Conforme exigência do PDF (página 2), o cálculo das calorias não é efetuado internamente. O Backend funciona como uma ponte (Adapter) que consulta **APIs Externas** para obter a contagem exata. 
+Conforme exigência do PDF (página 2), o cálculo das calorias não é efetuado internamente. O Backend funciona como uma ponte (Adapter) que consulta **APIs Externas** para obter a contagem exata. Foram integradas as seguintes APIs:
 
-*   **API Ninjas (Nutrition & Calories Burned):** O arquivo `backend/src/backend/handler.clj` utiliza a biblioteca `clj-http.client` para realizar requisições `GET` reais aos endpoints da API Ninjas. É necessário que o aluno/professor insira sua chave (`api-ninjas-key`) no código fonte do backend para que as requisições autenticadas ocorram.
-*   **Fallback Acadêmico:** Caso a chave não seja configurada, o sistema foi programado para fornecer um retorno simulado (mock), garantindo que a aplicação não crashe durante a apresentação e cumpra o fluxo.
-*   **Filtros por Período:** Atendendo aos itens 4 e 5 do edital, as rotas `/api/extrato` e `/api/saldo` agora processam Query Parameters (`?periodo=`). O uso da Higher-Order Function `filter` sobre as datas das transações garante a exibição correta dos eventos diários sem o uso de estruturas condicionais ou laços impuros.
+*   **USDA FoodData Central API:** Utilizada para buscar o valor nutricional (Calorias/Energy) dos alimentos consumidos baseados na pesquisa em inglês (ex: *apple*, *rice*). A chave oficial (`api_key`) já se encontra vinculada no código-fonte.
+*   **API Ninjas (Calories Burned):** Utilizada exclusivamente para calcular as calorias gastas em exercícios físicos baseados no tipo de atividade e no tempo de duração (ex: *running*). A chave oficial (`X-Api-Key`) já foi inserida no `handler.clj`.
+
+As requisições `GET` são realizadas de forma nativa utilizando a biblioteca `clj-http.client`. A filtragem complexa de JSONs para extrair a métrica "KCAL" na USDA API foi resolvida utilizando exclusivamente funções de alta-ordem como o `filter`.
+
+*   **Filtros por Período:** Atendendo aos itens 4 e 5 do edital, as rotas `/api/extrato` e `/api/saldo` processam Query Parameters (`?periodo=`). O uso da Higher-Order Function `filter` sobre as datas das transações garante a exibição correta dos eventos diários sem o uso de estruturas condicionais ou laços impuros.
 
 ---
 
