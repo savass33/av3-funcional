@@ -47,7 +47,7 @@ Gerado através do template `app`, consistindo em um cliente Desktop/CLI (Interf
 
 ---
 
-## 4. Conclusão
+## 5. Conclusão
 
 Essa refatoração garantiu não apenas a compatibilidade estrita do sistema aos exemplos em Clojure ensinados em sala e exigidos no edital, mas também separou categoricamente as duas entidades exigidas pelo padrão de sistemas distribuídos e Arquitetura Hexagonal:
 *   Um terminal servidor provendo acesso aos dados puros (`Backend`).
