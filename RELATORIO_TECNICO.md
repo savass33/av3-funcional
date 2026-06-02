@@ -1,61 +1,43 @@
 # Relatório Técnico: Projeto Calculadora de Calorias Functional
 
-Este relatório descreve a implementação da Calculadora de Calorias, desenvolvida para a avaliação AV3 da disciplina de Programação Funcional. O projeto demonstra a aplicação de conceitos avançados como imutabilidade, funções de ordem superior e a arquitetura hexagonal em uma estrutura simplificada e intuitiva.
+Este relatório descreve a **reimplementação completa e exaustiva** da Calculadora de Calorias, desenvolvida para a avaliação AV3 da disciplina de Programação Funcional. Atendendo de forma estrita às novas determinações e ao edital original, a solução descartou a antiga interface web (SPA em ClojureScript) e reconstruiu o projeto sob a ótica de dois projetos Clojure independentes, executados em terminais distintos, operando em rede (API + CLI).
 
 ---
 
-## 1. Regras de Negócio (O Problema)
+## 1. Regras de Negócio Implementadas
 
-O objetivo do sistema é monitorar o balanço energético diário de um usuário. Para isso, o sistema processa dois tipos de eventos:
+A lógica funcional da calculadora baseia-se na consolidação diária do saldo calórico:
+1.  **Ganhos (Refeição):** Transforma gramas de macronutrientes em calorias ($carbo \times 4 + prot \times 4 + gord \times 9$).
+2.  **Perdas (Exercício):** Multiplica o tempo de duração pelo fator de intensidade preenchido.
+3.  **Saldo Consolidado:** Subtrai da soma calórica (ganhos - perdas) a meta biológica registrada.
 
-1.  **Ingestão Alimentar (Ganho):** Calcula as calorias a partir dos macronutrientes:
-    *   **Carboidratos:** 1 grama = 4 calorias.
-    *   **Proteínas:** 1 grama = 4 calorias.
-    *   **Gorduras:** 1 grama = 9 calorias.
-2.  **Atividade Física (Perda):** Calcula a perda baseada na **Duração (minutos)** multiplicada por um **Fator de Intensidade**.
-3.  **Saldo Consolidado:** Representa o total acumulado (Ganhos - Perdas) subtraído de uma **Meta Biológica** diária (ex: 2000 cal).
+## 2. Paradigma Funcional e Substituição de Laços
 
----
-
-## 2. Lógica de Programação e Paradigma Funcional
-
-Diferente da programação tradicional (imperativa), onde damos ordens ao computador para mudar valores na memória, este projeto utiliza o **Paradigma Funcional**:
-
-*   **Imutabilidade:** Nenhuma variável muda de valor. Quando "adicionamos" uma refeição, criamos uma *nova* lista contendo a refeição anterior mais a nova.
-*   **Substituição de Laços (Loops):** É proibido usar `for` ou `while`. Usamos funções de "Transformação de Coleções":
-    *   **`map`:** Para transformar cada item de uma lista.
-    *   **`reduce`:** Para "espremer" uma lista e transformá-la em um único valor (ex: somar todas as calorias de uma lista).
-*   **Funções Puras:** A lógica de cálculo matemático nunca toca no banco de dados ou na internet. Ela recebe números e retorna números, sendo 100% previsível.
+Para atender de forma irrestrita às restrições do PDF, os laços iterativos impuros (`loop`, `while`, `for`, `doseq`, `dotimes`) foram erradicados e substituídos por técnicas do paradigma funcional:
+*   **Acesso à Memória Sem Efeitos Colaterais no Domínio:** A lógica matemática no backend é composta unicamente de **Funções Puras** que processam mapas.
+*   **Higher-Order Functions:** O `reduce` e `map` foram empregados no Backend para calcular as calorias totais e realizar o balanço sem iterar as listas manualmente. O `reduce` também foi usado no Frontend para imprimir a lista de extratos no terminal (evitando o `doseq`).
+*   **Tail Recursion (`recur`):** No Frontend, o "loop" contínuo do menu do terminal é mantido exclusivamente pela recursão de cauda através da chamada `(recur)` dentro de um `cond`, sem estourar o limite de pilha (Stack Overflow).
 
 ---
 
-## 3. Arquitetura do Sistema e Organização de Arquivos
+## 3. Decisões Arquiteturais e Estrutura de Diretórios
 
-O projeto utiliza a **Arquitetura Hexagonal**, organizada em pastas intuitivas para facilitar a leitura e manutenção:
+A arquitetura foi inteiramente substituída para isolar completamente o servidor (Backend REST API) da camada de interação visual (Frontend CLI). Ambos os projetos utilizam a linguagem **Clojure nativa (JVM)**.
 
-### A. Núcleo de Domínio (Inteligência Pura)
-Localizado em: `src/cljc/dominio/`
-*   **`regras.cljc`**: Contém as fórmulas matemáticas puras. Funciona tanto no servidor quanto no navegador.
-*   **`portas.cljc`**: Define o protocolo (contrato) do Repositório, ditando como os dados devem ser salvos sem se preocupar com a tecnologia de banco de dados.
+### A. Backend (`backend/`)
+Gerado através do template `compojure`, gerencia o roteamento REST e o banco de dados em memória.
+*   **`project.clj`**: Configurado com `compojure`, `ring-defaults` e `ring-json` para a construção nativa da API JSON.
+*   **`src/backend/handler.clj`**: Ponto central (e principal) que isola as Regras de Domínio (matemática calórica), a persistência segura baseada no conceito STM com a macro `atom` (`swap!`), e a definição das rotas (`GET` e `POST`) do Compojure.
 
-### B. Back-end (Infraestrutura do Servidor)
-Localizado em: `src/clj/backend/`
-*   **`api.clj`**: O adaptador de entrada web. Gerencia as rotas HTTP e traduz requisições JSON para o sistema.
-*   **`memoria.clj`**: O adaptador de saída. Implementa o repositório utilizando um **Atom** do Clojure para persistência em memória.
-*   **`main.clj`**: O ponto de partida que liga o servidor Jetty na porta 3000.
-
-### C. Front-end (Interface do Usuário)
-Localizado em: `src/cljs/frontend/`
-*   **`ui.cljs`**: Componentes visuais construídos com **Reagent**. Gerencia a reatividade da tela.
-*   **`cliente.cljs`**: Adaptador de saída que realiza as chamadas para a API do Back-end.
-*   **`main.cljs`**: Inicializa a aplicação no navegador.
-
-### D. Garantia de Qualidade (Testes)
-Localizado em: `test/dominio/`
-*   **`testes_propriedades.clj`**: Usa a biblioteca `test.check` para gerar cenários aleatórios e provar que as regras de cálculo são infalíveis.
+### B. Frontend (`frontend/`)
+Gerado através do template `app`, consistindo em um cliente Desktop/CLI (Interface por Linha de Comando).
+*   **`project.clj`**: Importa as bibliotecas `clj-http` (para invocar a REST API) e `cheshire` (para parse do JSON recebido).
+*   **`src/frontend/core.clj`**: Arquivo principal com a macro `-main`. Ele orquestra a captura de inputs pelo teclado, envio do JSON sobre HTTP ao servidor e apresentação formatada dos retornos da API. Ele utiliza o `recur` na cauda do `cond` para manter a aplicação viva no terminal.
 
 ---
 
 ## 4. Conclusão
 
-A nova estrutura do projeto reflete um design limpo e modular. Ao separar o **Domínio**, o **Backend** e o **Frontend** em pastas distintas e com nomes claros, o projeto demonstra não apenas o domínio técnico da linguagem Clojure, mas também uma compreensão profunda de organização de código e boas práticas de arquitetura de software.
+Essa refatoração garantiu não apenas a compatibilidade estrita do sistema aos exemplos em Clojure ensinados em sala e exigidos no edital, mas também separou categoricamente as duas entidades exigidas pelo padrão de sistemas distribuídos e Arquitetura Hexagonal:
+*   Um terminal servidor provendo acesso aos dados puros (`Backend`).
+*   Um terminal cliente encarregado inteiramente pela interface e I/O com o usuário final (`Frontend`).

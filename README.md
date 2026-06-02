@@ -1,71 +1,43 @@
-# Calculadora de Calorias Functional (AV3)
+# Calculadora de Calorias (Clojure API + CLI)
 
-Este projeto é uma aplicação de rastreamento calórico desenvolvida como parte da avaliação acadêmica de Programação Funcional (AV3). A solução utiliza **Clojure** no Back-end e **ClojureScript** no Front-end, seguindo rigorosamente os princípios do paradigma funcional e a **Arquitetura Hexagonal**.
+Este projeto atende integralmente à especificação do edital AV3, reimplementando toda a arquitetura em dois projetos Clojure independentes, em estrita obediência aos templates `compojure` e `app` e ao paradigma funcional. A aplicação dispensa tecnologias web no cliente, operando perfeitamente por terminal e REST API.
 
-## 🚀 Tecnologias Utilizadas
-
-- **Linguagem:** Clojure (JVM) e ClojureScript (Browser).
-- **Arquitetura:** Hexagonal (Ports and Adapters) - Capítulos 9-13 (Gregório Melo).
-- **Gerenciamento de Dependências:** Leiningen.
-- **Front-end:** Reagent (Interface Reativa baseada em React).
-- **Back-end:** Ring/Compojure (API REST) e Jetty.
-- **Testes:** Testes baseados em propriedades com `clojure.test.check`.
-
-## 🏗️ Arquitetura e Defesa Acadêmica
-
-O projeto foi estruturado para demonstrar o domínio dos conceitos fundamentais da programação funcional:
-
-1.  **Pureza e Imutabilidade:** O núcleo do domínio (`src/cljc/trab_av3/dominio/`) é composto exclusivamente por funções puras. Não existem efeitos colaterais nesta camada.
-2.  **Substituição de Laços (Loops):** Conforme exigência do edital, **não são utilizados loops tradicionais** (`loop`, `for`, `while`). Toda a iteração sobre eventos é realizada através de funções de ordem superior como `map`, `reduce` e `filter`.
-3.  **Isolamento de Efeitos Colaterais:**
-    *   **Adaptadores de Saída:** O estado é persistido em memória através de `atoms` no servidor, isolado da lógica de negócio.
-    *   **Adaptadores de Entrada:** A API REST orquestra a comunicação entre o mundo exterior (impuro) e o núcleo de domínio (puro).
-4.  **Testes de Propriedade:** Aplicamos a técnica de `Property-Based Testing` para provar matematicamente que o saldo consolidado é consistente, independentemente da ordem em que as refeições e exercícios são registrados.
-
-## 📁 Estrutura do Projeto
-
+## 🗂 Estrutura de Diretórios
 ```text
 trab-av3/
-├── src/
-│   ├── cljc/ (Código comum/puro)
-│   │   └── trab_av3/
-│   │       ├── dominio/ (Núcleo Puro)
-│   │       └── portas/ (Protocolos/Contratos)
-│   ├── clj/ (Back-end)
-│   │   └── trab_av3/
-│   │       ├── adaptadores/ (Entrada API / Saída Memória)
-│   │       └── core.clj (Ponto de entrada do servidor)
-│   └── cljs/ (Front-end)
-│       └── trab_av3/
-│           ├── adaptadores/ (Saída API Cliente)
-│           ├── ui/ (Componentes Reagent)
-│           └── core.cljs (Ponto de entrada do browser)
-└── test/
-    └── trab_av3/dominio/propriedades/ (Testes de Propriedade)
+├── backend/                  # Projeto 1: REST API
+│   ├── project.clj           # Dependências (Compojure, Ring-JSON)
+│   └── src/backend/
+│       └── handler.clj       # Atom (banco em memória), funções puras e rotas HTTP
+│
+├── frontend/                 # Projeto 2: Cliente CLI (Desktop)
+│   ├── project.clj           # Dependências (clj-http, cheshire)
+│   └── src/frontend/
+│       └── core.clj          # (-main) Menu iterativo via recur, inputs e invocações HTTP
+│
+└── RELATORIO_TECNICO.md      # Explicações funcionais, arquiteturais e uso de funções (reduce/recur)
 ```
 
-## 🛠️ Como Executar
+## 🚀 Como Executar
 
-### Pré-requisitos
-- [Leiningen](https://leiningen.org/) instalado.
+A arquitetura exige dois terminais distintos operando simultaneamente, exatamente como especificado:
 
-### 1. Executar os Testes
+### Terminal 1 (Inicie o Servidor Backend)
+Abra a pasta do backend e inicie a API na porta `3000`:
 ```bash
-lein test
+cd backend
+lein ring server
 ```
+*(Opcional: use `lein ring server-headless` se preferir que ele não tente abrir um navegador web vazio na hora que sobe).*
 
-### 2. Compilar o Frontend
+### Terminal 2 (Inicie a Interface CLI Frontend)
+Com o servidor rodando e aguardando chamadas, abra o segundo terminal, entre no frontend e rode o cliente interativo:
 ```bash
-lein cljsbuild once dev
-```
-
-### 3. Rodar a Aplicação
-```bash
+cd frontend
 lein run
 ```
 
-### 4. Acessar
-Abra o navegador em: **[http://localhost:3000](http://localhost:3000)**
-
-## 👨‍💻 Autor
-Desenvolvido para a disciplina de Programação Funcional (T300) - Semestre 2026.1.
+## 🏗 Regras Funcionais Observadas e Respeitadas
+-   **Laços (Loops) Abolidos:** Todo o controle de repetição, tanto no preenchimento de I/O do terminal no front, quanto no varrimento das somas no back, utilizam estritamente `(recur)`, `map` e `reduce`. Não existem macros `loop`, `while`, `for`, `doseq` ou `dotimes` neste código.
+-   **Imutabilidade:** As informações do projeto nunca são sobrescritas localmente; as funções de processamento instanciam novos valores em memória usando `let`, injetados isoladamente e de forma segura num gerenciador de concorrência (`atom`).
+-   **Responsabilidades Separadas:** O Frontend cuida exclusivamente de ler entradas de texto (I/O) e imprimir telas coloridas; ele não sabe calcular calorias. O Backend faz toda a matemática através das *Regras Puras*, gerencia dados em um *Atom*, e devolve as requisições serializadas via JSON HTTP.
