@@ -7,16 +7,18 @@ Este relatório descreve a **reimplementação completa e exaustiva** da Calcula
 ## 1. Regras de Negócio Implementadas
 
 A lógica funcional da calculadora baseia-se na consolidação diária do saldo calórico:
-1.  **Ganhos (Refeição):** Transforma gramas de macronutrientes em calorias ($carbo \times 4 + prot \times 4 + gord \times 9$).
-2.  **Perdas (Exercício):** Multiplica o tempo de duração pelo fator de intensidade preenchido.
-3.  **Saldo Consolidado:** Subtrai da soma calórica (ganhos - perdas) a meta biológica registrada.
+1.  **Cadastro Inicial:** Ao iniciar, o sistema solicita Nome, Idade, Gênero, Peso e Altura. O **peso** é o dado biológico fundamental para a precisão das consultas externas.
+2.  **Ganhos (Refeição):** Consulta a API USDA para obter as calorias de alimentos com base na quantidade informada.
+3. **Perdas (Exercício):** Consulta a API Ninjas para calcular as calorias gastas em atividades físicas. O sistema envia o **peso do usuário** (convertido de kg para lbs) como parâmetro, o que permite que a API devolva um valor de queima calórica personalizado para o porte físico do usuário.
+4. **Saldo Consolidado:** O cálculo final é realizado por: `(Calorias Consumidas) - (Calorias Gastas em Exercício)`.
+
 
 ## 2. Paradigma Funcional e Substituição de Laços
 
 Para atender de forma irrestrita às restrições do PDF, os laços iterativos impuros (`loop`, `while`, `for`, `doseq`, `dotimes`) foram erradicados e substituídos por técnicas do paradigma funcional:
-*   **Acesso à Memória Sem Efeitos Colaterais no Domínio:** A lógica matemática no backend é composta unicamente de **Funções Puras** que processam mapas.
-*   **Higher-Order Functions:** O `reduce` e `map` foram empregados no Backend para calcular as calorias totais e realizar o balanço sem iterar as listas manualmente. O `reduce` também foi usado no Frontend para imprimir a lista de extratos no terminal (evitando o `doseq`).
-*   **Tail Recursion (`recur`):** No Frontend, o "loop" contínuo do menu do terminal é mantido exclusivamente pela recursão de cauda através da chamada `(recur)` dentro de um `cond`, sem estourar o limite de pilha (Stack Overflow).
+*   **Acesso à Memória Sem Efeitos Colaterais no Domínio:** A lógica matemática no backend (incluindo o cálculo da TMB e saldo) é composta unicamente de **Funções Puras** que processam mapas.
+*   **Higher-Order Functions:** O `reduce` e `map` foram empregados no Backend para calcular as calorias totais. O `filter` foi usado para extrair o nutriente "Energy" do JSON da USDA e para filtrar transações por data.
+*   **Tail Recursion (`recur`):** No Frontend, o controle do menu e a persistência da aplicação no terminal são mantidos exclusivamente via recursão de cauda, garantindo segurança de memória.
 
 ## 3. Integração com APIs Externas (Terceiros) e Filtros por Período
 

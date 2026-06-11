@@ -39,27 +39,29 @@
 
 (defn registrar-usuario []
   (println "\n==========================")
-  (println "    DADOS DO USUARIO      ")
+  (println "    CADASTRO DE USUARIO   ")
   (println "==========================")
-  (let [altura (ler-numero "Altura (cm): ")
-        peso   (ler-numero "Peso (kg): ")
+  (let [nome   (ler-texto "Nome completo: ")
         idade  (ler-numero "Idade: ")
-        sexo   (ler-texto "Sexo (M/F): ")]
-    (post-json "/usuario" {"altura" altura "peso" peso "idade" idade "sexo" sexo})
-    (println "-> Dados cadastrados com sucesso na API!")))
+        sexo   (ler-texto "Sexo (M/F): ")
+        peso   (ler-numero "Peso (kg): ")
+        altura (ler-numero "Altura (cm): ")]
+    (post-json "/usuario" {"nome" nome "idade" idade "sexo" sexo "peso" peso "altura" altura})
+    (println "\n-> Bem-vindo(a)," nome "! Seus dados foram sincronizados com o servidor.")))
 
 (defn consultar-usuario []
   (println "\n==========================")
-  (println "    CONSULTAR USUARIO     ")
+  (println "    DADOS DO USUARIO      ")
   (println "==========================")
   (let [user (get-json "/usuario" {})]
     (if (empty? user)
       (println "Nenhum usuário cadastrado.")
       (do
-        (println "Altura:" (:altura user) "cm")
-        (println "Peso:" (:peso user) "kg")
-        (println "Idade:" (:idade user) "anos")
-        (println "Sexo:" (:sexo user))))))
+        (println "Nome:   " (:nome user))
+        (println "Idade:  " (:idade user) "anos")
+        (println "Sexo:   " (:sexo user))
+        (println "Peso:   " (:peso user) "kg")
+        (println "Altura: " (:altura user) "cm")))))
 
 (defn registrar-refeicao []
   (println "\n==========================")
@@ -69,7 +71,7 @@
         alimento (ler-texto "Nome do alimento (ex: apple, rice): ")
         quantidade (ler-numero "Quantidade consumida (em gramas): ")]
     (post-json "/refeicao" {"data" data "alimento" alimento "quantidade" quantidade})
-    (println "-> Alimento enviado! A API backend consultou o serviço externo (API Ninjas) para buscar as calorias.")))
+    (println "-> Alimento enviado e calorias calculadas via API USDA!")))
 
 (defn registrar-exercicio []
   (println "\n==========================")
@@ -79,7 +81,7 @@
         atividade (ler-texto "Nome da atividade (ex: running, walking): ")
         duracao (ler-numero "Tempo de duracao (em minutos): ")]
     (post-json "/exercicio" {"data" data "atividade" atividade "duracao" duracao})
-    (println "-> Atividade enviada! A API backend consultou o serviço externo (API Ninjas) para calcular a perda calórica.")))
+    (println "-> Atividade enviada e calorias calculadas via API Ninjas!")))
 
 (defn ver-extrato []
   (println "\n==========================")
@@ -105,30 +107,35 @@
         params (if (empty? periodo) {} {"periodo" periodo})
         saldo-map (get-json "/saldo" params)]
     (when saldo-map
-      (println "Período Consultado:" (:periodo saldo-map))
-      (println "Saldo Acumulado:" (:saldo saldo-map) "calorias"))))
+      (println "Período Consultado: " (:periodo saldo-map))
+      (println "SALDO ACUMULADO:    " (:saldo saldo-map) "calorias")
+      (cond
+        (> (:saldo saldo-map) 0) (println "\n-> Você consumiu mais do que gastou.")
+        (< (:saldo saldo-map) 0) (println "\n-> Você gastou mais do que consumiu.")
+        :else (println "\n-> Seu saldo está equilibrado.")))))
 
 (defn menu []
   (println "\n=== CALCULADORA FUNCIONAL ===")
-  (println "1. Cadastrar Dados Pessoais (altura, peso, idade e sexo)")
-  (println "2. Consultar Dados Pessoais")
-  (println "3. Registrar Consumo de Alimento (Ganho de Caloria)")
-  (println "4. Registrar Realização de Atividade Física (Perda de Caloria)")
-  (println "5. Consultar Extrato de Transações (Por Período)")
-  (println "6. Consultar Saldo de Calorias (Por Período)")
-  (println "7. Sair")
+  (println "1. Consultar Meus Dados")
+  (println "2. Registrar Consumo de Alimento (Ganho de Caloria)")
+  (println "3. Registrar Realização de Atividade Física (Perda de Caloria)")
+  (println "4. Consultar Extrato de Transações")
+  (println "5. Consultar Saldo de Calorias")
+  (println "6. Sair")
   (print "\nSua escolha: ")
   (flush)
   (let [opcao (read-line)]
     (cond
-      (= opcao "1") (do (registrar-usuario) (recur))
-      (= opcao "2") (do (consultar-usuario) (recur))
-      (= opcao "3") (do (registrar-refeicao) (recur))
-      (= opcao "4") (do (registrar-exercicio) (recur))
-      (= opcao "5") (do (ver-extrato) (recur))
-      (= opcao "6") (do (ver-saldo) (recur))
-      (= opcao "7") (println "Saindo...")
+      (= opcao "1") (do (consultar-usuario) (recur))
+      (= opcao "2") (do (registrar-refeicao) (recur))
+      (= opcao "3") (do (registrar-exercicio) (recur))
+      (= opcao "4") (do (ver-extrato) (recur))
+      (= opcao "5") (do (ver-saldo) (recur))
+      (= opcao "6") (println "Saindo...")
       :else (do (println "Opção invalida.") (recur)))))
 
 (defn -main [& args]
+  (println "Iniciando Calculadora de Calorias...")
+  (registrar-usuario)
   (menu))
+
